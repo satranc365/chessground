@@ -154,7 +154,7 @@ function renderShape(
     if (shape.dest && shape.dest !== shape.orig) {
       let brush: DrawBrush = brushes[shape.brush];
       if (shape.modifiers) brush = makeCustomBrush(brush, shape.modifiers);
-      el = renderArrow(
+      el = renderRectangleArrow(
         brush,
         orig,
         orient(key2pos(shape.dest), state.orientation),
@@ -163,7 +163,7 @@ function renderShape(
         bounds,
         shape.modifiers?.hilite
       );
-    } else el = renderCircle(brushes[shape.brush], orig, current, bounds);
+    } else el = renderSquare(brushes[shape.brush], orig, current, bounds);
   }
   el.setAttribute('cgHash', hash);
   return el;
@@ -183,22 +183,59 @@ function renderCustomSvg(customSvg: string, pos: cg.Pos, bounds: DOMRectReadOnly
   return g;
 }
 
-function renderCircle(brush: DrawBrush, pos: cg.Pos, current: boolean, bounds: DOMRectReadOnly): SVGElement {
-  const o = pos2user(pos, bounds),
-    widths = circleWidth(),
-    radius = (bounds.width + bounds.height) / (4 * Math.max(bounds.width, bounds.height));
-  return setAttributes(createElement('circle'), {
+
+
+function renderSquare(brush: DrawBrush, pos: cg.Pos, current: boolean, bounds: DOMRectReadOnly): SVGElement {
+  const o = pos2user(pos, bounds);
+  return setAttributes(createElement('rect'), {
     stroke: brush.color,
-    'stroke-width': widths[current ? 0 : 1],
+    'stroke-width': 4 / 64,
+    'clip-path': 'inset(0)',
     fill: 'none',
     opacity: opacity(brush, current),
-    cx: o[0],
-    cy: o[1],
-    r: radius - widths[1] / 2,
+    width: 1,
+    height: 1,
+    x: o[0] - 0.5,
+    y: o[1] - 0.5,
   });
 }
 
-function renderArrow(
+// function renderArrow(
+//   brush: DrawBrush,
+//   orig: cg.Pos,
+//   dest: cg.Pos,
+//   current: boolean,
+//   shorten: boolean,
+//   bounds: DOMRectReadOnly,
+//   hilited = false
+// ): SVGElement {
+//   function renderInner(isHilite: boolean) {
+//     const m = arrowMargin(shorten && !current),
+//       a = pos2user(orig, bounds),
+//       b = pos2user(dest, bounds),
+//       dx = b[0] - a[0],
+//       dy = b[1] - a[1],
+//       angle = Math.atan2(dy, dx),
+//       xo = Math.cos(angle) * m,
+//       yo = Math.sin(angle) * m;
+//     return setAttributes(createElement('line'), {
+//       stroke: isHilite ? 'white' : brush.color,
+//       'stroke-width': lineWidth(brush, current) + (isHilite ? 0.04 : 0),
+//       'stroke-linecap': 'round',
+//       'marker-end': `url(#arrowhead-${isHilite ? 'hilite' : brush.key})`,
+//       opacity: isHilite ? 1 : opacity(brush, current),
+//       x1: a[0],
+//       y1: a[1],
+//       x2: b[0] - xo,
+//       y2: b[1] - yo,
+//     });
+//   }
+//   const el = hilited ? createElement('g') : renderInner(false);
+//   if (hilited) [true, false].map(h => el.appendChild(renderInner(h)));
+//   return el;
+// }
+
+function renderRectangleArrow(
   brush: DrawBrush,
   orig: cg.Pos,
   dest: cg.Pos,
@@ -214,19 +251,23 @@ function renderArrow(
       dx = b[0] - a[0],
       dy = b[1] - a[1],
       angle = Math.atan2(dy, dx),
-      xo = Math.cos(angle) * m,
-      yo = Math.sin(angle) * m;
-    return setAttributes(createElement('line'), {
-      stroke: isHilite ? 'white' : brush.color,
-      'stroke-width': lineWidth(brush, current) + (isHilite ? 0.04 : 0),
-      'stroke-linecap': 'round',
+      height = lineWidth(brush, current) + (isHilite ? 0.04 : 0),
+      width = Math.sqrt(dx * dx + dy * dy) - m;
+
+    const arrowRect = (setAttributes(createElement('rect'), {
+      stroke: 'none',
+      'stroke-linejoin': 'round',
+      fill: isHilite ? 'white' : brush.color,
       'marker-end': `url(#arrowhead-${isHilite ? 'hilite' : brush.key})`,
       opacity: isHilite ? 1 : opacity(brush, current),
-      x1: a[0],
-      y1: a[1],
-      x2: b[0] - xo,
-      y2: b[1] - yo,
-    });
+      height: height,
+      width: width,
+      x: a[0],
+      y: a[1] - height / 2,
+      transform: `rotate(${angle * 180 / Math.PI} ${a[0]} ${a[1]})`,
+    }))
+      
+    return arrowRect 
   }
   const el = hilited ? createElement('g') : renderInner(false);
   if (hilited) [true, false].map(h => el.appendChild(renderInner(h)));
@@ -243,10 +284,15 @@ function renderMarker(brush: DrawBrush): SVGElement {
     refY: 2,
   });
   marker.appendChild(
-    setAttributes(createElement('path'), {
-      d: 'M0,0 V4 L3,2 Z',
-      fill: brush.color,
+    setAttributes(createElement('rect'), {
+      width: 40,
+      height: 40,
+      fill: "red",
     })
+    // setAttributes(createElement('path'), {
+    //   d: 'M0,0 V4 L3,2 Z',
+    //   fill: '#ff0000',
+    // })
   );
   marker.setAttribute('cgKey', brush.key);
   return marker;
@@ -272,9 +318,6 @@ function makeCustomBrush(base: DrawBrush, modifiers: DrawModifiers): DrawBrush {
   };
 }
 
-function circleWidth(): [number, number] {
-  return [3 / 64, 4 / 64];
-}
 
 function lineWidth(brush: DrawBrush, current: boolean): number {
   return ((brush.lineWidth || 10) * (current ? 0.85 : 1)) / 64;

@@ -95,7 +95,10 @@ function syncDefs(d: Drawable, shapes: SyncableShape[], defsEl: SVGElement) {
     el = el.nextSibling as SVGElement | undefined;
   }
   for (const [key, brush] of brushes.entries()) {
-    if (!keysInDom.has(key)) defsEl.appendChild(renderMarker(brush));
+    if (!keysInDom.has(key)) {
+      defsEl.appendChild(renderMarker(brush));
+      defsEl.appendChild(renderLinearOpacityGradient(brush));
+    }
   }
 }
 
@@ -183,8 +186,6 @@ function renderCustomSvg(customSvg: string, pos: cg.Pos, bounds: DOMRectReadOnly
   return g;
 }
 
-
-
 function renderSquare(brush: DrawBrush, pos: cg.Pos, current: boolean, bounds: DOMRectReadOnly): SVGElement {
   const o = pos2user(pos, bounds);
   return setAttributes(createElement('rect'), {
@@ -251,23 +252,41 @@ function renderRectangleArrow(
       dx = b[0] - a[0],
       dy = b[1] - a[1],
       angle = Math.atan2(dy, dx),
-      height = lineWidth(brush, current) + (isHilite ? 0.04 : 0),
+      xo = Math.cos(angle) * m,
+      yo = Math.sin(angle) * m,
+      height = lineWidth(brush, current) / 3 + (isHilite ? 0.04 : 0),
       width = Math.sqrt(dx * dx + dy * dy) - m;
 
-    const arrowRect = (setAttributes(createElement('rect'), {
+    const group = setAttributes(createElement('g'), {});
+    const arrowRect = setAttributes(createElement('rect'), {
       stroke: 'none',
       'stroke-linejoin': 'round',
-      fill: isHilite ? 'white' : brush.color,
-      'marker-end': `url(#arrowhead-${isHilite ? 'hilite' : brush.key})`,
+      mask: 'url(#markerLinearOpacityGradientMask)',
+      fill: isHilite ? 'white' : `url(#linearOpacityGradient-${brush.key})`,
       opacity: isHilite ? 1 : opacity(brush, current),
       height: height,
       width: width,
       x: a[0],
       y: a[1] - height / 2,
-      transform: `rotate(${angle * 180 / Math.PI} ${a[0]} ${a[1]})`,
-    }))
-      
-    return arrowRect 
+      transform: `rotate(${(angle * 180) / Math.PI} ${a[0]} ${a[1]})`,
+    });
+    const arrowLine = setAttributes(createElement('line'), {
+      // stroke="transparent" stroke-width="10" stroke-linecap="round" marker-end="url(#arrow)" opacity="1" x1="30" y1="305" x2="300" y2="305" cgHash="592,592,d7,c6,green"
+      stroke: 'transparent',
+      'stroke-width': height,
+      'stroke-linecap': 'round',
+      'marker-end': `url(#arrowhead-${isHilite ? 'hilite' : brush.key})`,
+      opacity: isHilite ? 1 : opacity(brush, current),
+      x1: a[0],
+      y1: a[1],
+      x2: b[0] - xo,
+      y2: b[1] - yo,
+    });
+
+    group.appendChild(arrowRect);
+    group.appendChild(arrowLine);
+
+    return group;
   }
   const el = hilited ? createElement('g') : renderInner(false);
   if (hilited) [true, false].map(h => el.appendChild(renderInner(h)));
@@ -278,24 +297,47 @@ function renderMarker(brush: DrawBrush): SVGElement {
   const marker = setAttributes(createElement('marker'), {
     id: 'arrowhead-' + brush.key,
     orient: 'auto',
-    markerWidth: 4,
+    markerWidth: 4.8,
     markerHeight: 8,
-    refX: brush.key === 'hilite' ? 1.86 : 2.05,
-    refY: 2,
+    refX: brush.key === 'hilite' ? 3.86 : 4,
+    refY: 4,
   });
   marker.appendChild(
-    setAttributes(createElement('rect'), {
-      width: 40,
-      height: 40,
-      fill: "red",
+    setAttributes(createElement('path'), {
+      d: 'M0.5,0.5 L3.7,4 L0.5,7.5',
+      'stroke-linecap': 'round',
+      'stroke-linejoin': 'round',
+      stroke: brush.color,
+      fill: 'none',
     })
-    // setAttributes(createElement('path'), {
-    //   d: 'M0,0 V4 L3,2 Z',
-    //   fill: '#ff0000',
-    // })
   );
   marker.setAttribute('cgKey', brush.key);
   return marker;
+}
+
+function renderLinearOpacityGradient(brush: DrawBrush): SVGElement {
+  const linearGradient = setAttributes(createElement('linearGradient'), {
+    id: 'linearOpacityGradient-' + brush.key,
+    x1: '0%',
+    x2: '100%',
+    y1: '0%',
+    y2: '0%',
+  });
+  const stop1 = setAttributes(createElement('stop'), {
+    offset: '0%',
+    'stop-color': brush.color,
+    'stop-opacity': 0,
+  });
+  const stop2 = setAttributes(createElement('stop'), {
+    offset: '100%',
+    'stop-color': brush.color,
+    'stop-opacity': 1,
+  });
+
+  linearGradient.appendChild(stop1);
+  linearGradient.appendChild(stop2);
+
+  return linearGradient;
 }
 
 export function setAttributes(el: SVGElement, attrs: { [key: string]: any }): SVGElement {
@@ -317,7 +359,6 @@ function makeCustomBrush(base: DrawBrush, modifiers: DrawModifiers): DrawBrush {
     key: [base.key, modifiers.lineWidth].filter(x => x).join(''),
   };
 }
-
 
 function lineWidth(brush: DrawBrush, current: boolean): number {
   return ((brush.lineWidth || 10) * (current ? 0.85 : 1)) / 64;

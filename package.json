@@ -21,6 +21,7 @@
     "typescript": "^5.1.3"
   },
   "scripts": {
+    "dev": "tsc --outDir . --sourceMap --declaration --watch",
     "prepare": "$npm_execpath run compile",
     "compile": "tsc --outDir . --sourceMap --declaration",
     "lint": "eslint src/*.ts",

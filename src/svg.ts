@@ -201,40 +201,69 @@ function renderSquare(brush: DrawBrush, pos: cg.Pos, current: boolean, bounds: D
   });
 }
 
-// function renderArrow(
-//   brush: DrawBrush,
-//   orig: cg.Pos,
-//   dest: cg.Pos,
-//   current: boolean,
-//   shorten: boolean,
-//   bounds: DOMRectReadOnly,
-//   hilited = false
-// ): SVGElement {
-//   function renderInner(isHilite: boolean) {
-//     const m = arrowMargin(shorten && !current),
-//       a = pos2user(orig, bounds),
-//       b = pos2user(dest, bounds),
-//       dx = b[0] - a[0],
-//       dy = b[1] - a[1],
-//       angle = Math.atan2(dy, dx),
-//       xo = Math.cos(angle) * m,
-//       yo = Math.sin(angle) * m;
-//     return setAttributes(createElement('line'), {
-//       stroke: isHilite ? 'white' : brush.color,
-//       'stroke-width': lineWidth(brush, current) + (isHilite ? 0.04 : 0),
-//       'stroke-linecap': 'round',
-//       'marker-end': `url(#arrowhead-${isHilite ? 'hilite' : brush.key})`,
-//       opacity: isHilite ? 1 : opacity(brush, current),
-//       x1: a[0],
-//       y1: a[1],
-//       x2: b[0] - xo,
-//       y2: b[1] - yo,
-//     });
-//   }
-//   const el = hilited ? createElement('g') : renderInner(false);
-//   if (hilited) [true, false].map(h => el.appendChild(renderInner(h)));
-//   return el;
-// }
+/*
+ * Repo arrows
+ *
+
+function renderArrow(
+  brush: DrawBrush,
+  orig: cg.Pos,
+  dest: cg.Pos,
+  current: boolean,
+  shorten: boolean,
+  bounds: DOMRectReadOnly,
+  hilited = false
+): SVGElement {
+  function renderInner(isHilite: boolean) {
+    const m = arrowMargin(shorten && !current),
+      a = pos2user(orig, bounds),
+      b = pos2user(dest, bounds),
+      dx = b[0] - a[0],
+      dy = b[1] - a[1],
+      angle = Math.atan2(dy, dx),
+      xo = Math.cos(angle) * m,
+      yo = Math.sin(angle) * m;
+    return setAttributes(createElement('line'), {
+      stroke: isHilite ? 'white' : brush.color,
+      'stroke-width': lineWidth(brush, current) + (isHilite ? 0.04 : 0),
+      'stroke-linecap': 'round',
+      'marker-end': `url(#arrowhead-${isHilite ? 'hilite' : brush.key})`,
+      opacity: isHilite ? 1 : opacity(brush, current),
+      x1: a[0],
+      y1: a[1],
+      x2: b[0] - xo,
+      y2: b[1] - yo,
+    });
+  }
+  const el = hilited ? createElement('g') : renderInner(false);
+  if (hilited) [true, false].map(h => el.appendChild(renderInner(h)));
+  return el;
+}
+
+function renderMarker(brush: DrawBrush): SVGElement {
+  const marker = setAttributes(createElement('marker'), {
+    id: 'arrowhead-' + brush.key,
+    orient: 'auto',
+    markerWidth: 4,
+    markerHeight: 8,
+    refX: brush.key === 'hilite' ? 1.86 : 2.05,
+    refY: 2,
+  });
+  marker.appendChild(
+    setAttributes(createElement('path'), {
+      d: 'M0,0 V4 L3,2 Z',
+      fill: brush.color,
+    })
+  );
+  marker.setAttribute('cgKey', brush.key);
+  return marker;
+}
+
+*/
+
+/*
+ * New arrows
+ */
 
 function renderRectangleArrow(
   brush: DrawBrush,
@@ -339,6 +368,8 @@ function renderLinearOpacityGradient(brush: DrawBrush): SVGElement {
 
   return linearGradient;
 }
+
+/* */
 
 export function setAttributes(el: SVGElement, attrs: { [key: string]: any }): SVGElement {
   for (const key in attrs) {

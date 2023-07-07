@@ -1,6 +1,6 @@
 {
   "name": "@satranc365/chessground",
-  "version": "1.0.1",
+  "version": "1.0.2",
   "description": "A fork of lichess.org chess ui, customized for Satranc365",
   "type": "module",
   "module": "chessground.js",

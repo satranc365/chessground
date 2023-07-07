@@ -18,5 +18,4 @@ git tag "v$version"
 git push
 git push --tags
 
-gh release create v$version
 #npm publish

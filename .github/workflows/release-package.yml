@@ -17,6 +17,9 @@ jobs:
           registry-url: https://npm.pkg.github.com/
           scope: '@satranc365'
       - run: npm ci
+      - run: |
+          echo "@satranc365:registry=https://npm.pkg.github.com" >> .npmrc
+          echo "//npm.pkg.github.com/:_authToken=${{ secrets.GITHUB_TOKEN }}" >> .npmrc
       - run: npm publish
         env:
           NODE_AUTH_TOKEN: ${{ secrets.GITHUB_TOKEN }}

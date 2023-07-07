@@ -1,7 +1,7 @@
 {
-  "name": "chessground",
-  "version": "8.3.12",
-  "description": "lichess.org chess ui",
+  "name": "@satranc365/chessground",
+  "version": "1.0.0",
+  "description": "A fork of lichess.org chess ui, customized for Satranc365",
   "type": "module",
   "module": "chessground.js",
   "typings": "chessground.d.ts",
@@ -51,5 +51,8 @@
   "bugs": {
     "url": "https://github.com/lichess-org/chessground/issues"
   },
-  "funding": "https://lichess.org/patron"
+  "funding": "https://lichess.org/patron",
+  "publishConfig": {
+    "@satranc365:registry": "https://npm.pkg.github.com"
+  }
 }

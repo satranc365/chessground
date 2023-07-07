@@ -1,7 +1,7 @@
 {
-  "name": "chessground",
-  "version": "8.3.12",
-  "description": "lichess.org chess ui",
+  "name": "@satranc365/chessground",
+  "version": "1.0.21",
+  "description": "A fork of lichess.org chess ui, customized for Satranc365",
   "type": "module",
   "module": "chessground.js",
   "typings": "chessground.d.ts",
@@ -37,7 +37,7 @@
     "/src/*.ts",
     "!/rollup.config.js"
   ],
-  "repository": "https://github.com/lichess-org/chessground",
+  "repository": "https://github.com/satranc365/chessground",
   "keywords": [
     "chess",
     "lichess",
@@ -46,10 +46,9 @@
     "ui",
     "typescript"
   ],
-  "author": "Thibault Duplessis (https://github.com/ornicar)",
+  "author": "Cafer Elgin (https://github.com/satranc365)",
   "license": "GPL-3.0-or-later",
-  "bugs": {
-    "url": "https://github.com/lichess-org/chessground/issues"
-  },
-  "funding": "https://lichess.org/patron"
+  "publishConfig": {
+    "@satranc365:registry": "https://npm.pkg.github.com"
+  }
 }
